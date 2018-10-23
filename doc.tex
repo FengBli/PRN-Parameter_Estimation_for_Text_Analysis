@@ -1,0 +1,131 @@
+\documentclass[utf8]{ctexart}
+
+% preli start
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{mathalfa}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+
+\makeatletter
+\def\BState{\State\hskip-\ALG@thistlm}
+\makeatother
+% preli end
+
+
+\begin{document}
+
+\title{Parameter estimation for text analysis - 笔记}
+\author{冯柏淋}
+\date{2018年10月23日}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{引入}
+此笔记是本人在阅读论文Gregor Heinrich:\textit{Parameter estimation for text analysis}的过程的一点笔记，大多是对于原文的翻译和摘录。另有一部分自己的理解，因而可能存在错误。
+
+\section{基本问题与贝叶斯公式}
+
+\subsection{两类基本问题}
+
+\begin{itemize}
+	\item	\textbf{估计} \, 估计分布的参数以解释观测值 
+	\item	\textbf{预测/回归} \, 基于以往观测值，预测新的观测值的概率 
+\end{itemize}
+
+\subsection{贝叶斯公式}
+\begin{equation}\label{eq1}
+p(\theta \mid \mathcal{X} ) = \frac{p(\mathcal{X} \mid \theta) \cdot p(\theta)}{p(\mathcal{X})}
+\end{equation}
+
+对以上公式中的每一部分，我们有如下名称：
+\begin{equation}\label{eq2}
+\text{posterior} = \frac{\text{likelihood} \cdot \text{prior}}{\text{evidence}}
+\end{equation}
+
+\subsection{记号}
+数据集：$$	\mathcal{X} \triangleq \lbrace x \rbrace _{i}^{|\mathcal{X}|}	$$
+
+\section{极大似然估计MLE}
+
+\subsection{参数估计}
+极大似然函数：
+\begin{equation}\label{eq3}
+L(\theta ; \mathcal{X}) \triangleq p(\mathcal{X} \mid \theta) = \prod_{x \in \mathcal{X}} p(x \mid \theta)
+\end{equation}
+
+极大似然估计(MLE)：
+\begin{equation}\label{eq4}
+\hat{\theta}_{\text{MLE}} = \arg \max_\theta \mathcal{L}(\theta ; \mathcal{X}) =  \arg \max_\theta \sum_{x\in \mathcal{X}} \log p(x \mid \theta)
+\end{equation}
+
+\subsection{预测}
+对于新的观测值的概率估计过程如下：\footnote{此处，$p(\tilde{x} \mid \hat{\theta}_{\text{MLE}})$视为常数，并且$\int_{\theta \in \Theta} p(\theta \mid \mathcal{X}) \, \text{d} \theta = 1$}
+
+\begin{align}
+p(\tilde{x} \mid \mathcal{X}) 
+	&= \int_{\theta \in \Theta} p(\tilde{x} \mid \theta) \cdot p(\theta \mid \mathcal{X}) \, \text{d} \theta \\
+	&\approx \int_{\theta \in \Theta} p(\tilde{x} \mid \hat{\theta}_{\text{MLE}}) \cdot p(\theta \mid \mathcal{X}) \, \text{d} \theta  \\
+	&= p(\tilde{x} \mid \hat{\theta}_{\text{MLE}}).
+\end{align}
+
+
+\subsection{一个例子}
+暂时略。
+
+\section{最大后验概率MAP}
+\subsection{参数估计}
+\begin{align}
+\hat{\theta}_{\text{MAP}} &= \arg \max_\theta \, p(\theta \mid \mathcal{X})	\\
+	&= \arg \max_\theta \, \frac{p(\mathcal{X} \mid \theta) \cdot p(\theta)}{p(\mathcal{X})} \\
+	&= \arg \max_\theta \, p(\mathcal{X} \mid \theta) \cdot p(\theta) \\
+	&= \arg \max_\theta \, \lbrace  \mathcal{L}(\theta \mid \mathcal{X}) + \log p(\theta)  \rbrace \\
+	&= \arg \max_\theta \, \lbrace \sum_{x \in \mathcal{X}} \log p(x \mid \theta) + \log p(\theta) \rbrace
+\end{align}
+
+MAP相比于MLE而言，添加了关于先验分布的额外信息$p(\theta)$。实践中，可以通过假定一些简单的先验分布$p(\theta)$来防止过拟合。\footnote{Occam's razor原理}
+
+\subsection{预测}
+
+\begin{align}
+p(\tilde{x} \mid \mathcal{X}) 
+	&\approx \int_{\theta \in \Theta} p(\tilde{x} \mid \hat{\theta}_{\text{MAP}}) \cdot p(\theta \mid \mathcal{X}) \, \text{d} \theta  \\
+	&= p(\tilde{x} \mid \hat{\theta}_{\text{MAP}}).
+\end{align}
+
+\subsection{一个例子}
+暂时略。
+
+\section{贝叶斯估计}
+\subsection{参数估计}
+贝叶斯估计是对MAP的一个拓展。MAP对于参数只产生一个确定的估计值$\hat{\theta}_{\text{MAP}}$，而贝叶斯估计则产生对于参数的一个分布。从而，贝叶斯分布则提供了关于参数的额外信息，比如期望和方差。
+
+主要步骤为计算后验分布：
+\begin{equation}
+	p(\theta \mid \mathcal{X}) = \frac{p(\mathcal{X} \mid \theta) \cdot p(\theta)}{p(\mathcal{X})}
+\end{equation}
+
+在前述的MAP方法中，只需要最大化此式，则无需求出分母$p(\mathcal{X})$，而在此处则需要计算，且：
+\begin{equation}
+	p(\mathcal{X}) = \int_{\theta \in \Theta} p( \mathcal{X} | \theta ) \cdot  p( \theta ) \, \text{d} \theta 
+\end{equation}
+因为没最大化参数的过程，参数估计的过程也就不是一个具体的值，而是求取参数的分布：
+\begin{align}
+	p(\theta \mid \mathcal{X}) &= \frac{p(\mathcal{X} \mid \theta) \cdot p(\theta)}{p(\mathcal{X})}	\\
+	&=  \frac{p(\mathcal{X} \mid \theta) \cdot p(\theta)}{ \int_{\theta \in \Theta} p( \mathcal{X} | \theta ) \cdot  p( \theta ) \, \text{d} \theta }
+\end{align}
+
+\subsection{预测}
+
+\begin{align}
+p(\tilde{x} \mid \mathcal{X}) 
+	&= \int_{\theta \in \Theta} p(\tilde{x} \mid \theta) \cdot p(\theta \mid \mathcal{X}) \, \text{d} \theta \\
+	&= \int_{\theta \in \Theta} p(\tilde{x} \mid \theta) \cdot \frac{p(\mathcal{X} \mid \theta) \cdot p(\theta)}{p(\mathcal{X})} \, \text{d} \theta .
+\end{align}
+
+\subsection{一个例子}
+暂时略。
+
+\end{document}
